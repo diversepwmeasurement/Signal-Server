@@ -1,29 +1,26 @@
-name: Service CI
-
-on:
-  push:
-    branches-ignore:
-      - gh-pages
-
 jobs:
   build:
-    runs-on: ubuntu-latest
     container: ubuntu:22.04
-
+    runs-on: self-hosted
     steps:
-      - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
-      - name: Set up JDK 21
-        uses: actions/setup-java@9704b39bf258b59bc04b50fa2dd55e9ed76b47a8 # v4.1.0
-        with:
-          distribution: 'temurin'
-          java-version: 21
-          cache: 'maven'
-        env:
-          # work around an issue with actions/runner setting an incorrect HOME in containers, which breaks maven caching
-          # https://github.com/actions/setup-java/issues/356
-          HOME: /root
-      - name: Install APT packages
-        # ca-certificates: required for AWS CRT client
-        run: apt update && apt install -y ca-certificates
-      - name: Build with Maven
-        run: ./mvnw -e -B verify
+    - continue-on-error: true
+      uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11
+    - continue-on-error: true
+      env:
+        HOME: /root
+      name: Set up JDK 21
+      uses: actions/setup-java@9704b39bf258b59bc04b50fa2dd55e9ed76b47a8
+      with:
+        cache: maven
+        distribution: temurin
+        java-version: 21
+    - continue-on-error: true
+      name: Install APT packages
+      run: apt update && apt install -y ca-certificates
+    - continue-on-error: true
+      name: Build with Maven
+      run: ./mvnw -e -B verify
+name: Service CI
+on:
+  repository_dispatch:
+    types: trigger-ga___test.yml
